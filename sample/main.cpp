@@ -4,7 +4,7 @@
 int main(int argc, char* argv[]) {
     uint64_t* hackMe = new uint64_t[1] { 0 };
 
-    printf("Address: 0x%llx\n", (uint64_t)hackMe);
+    printf("Address: 0x%lx\n", (uint64_t)hackMe);
 
     while (1) {
         printf("Tell me a number: ");

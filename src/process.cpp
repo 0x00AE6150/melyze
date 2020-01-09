@@ -8,10 +8,10 @@
 
 bool process::check_process(uint64_t pid) {
     char mem_maps_path[64];
-    sprintf(mem_maps_path, "/proc/%lld/maps", pid);
+    sprintf(mem_maps_path, "/proc/%lu/maps", pid);
 
     char mem_path[64];
-    sprintf(mem_path, "/proc/%lld/mem", pid);
+    sprintf(mem_path, "/proc/%lu/mem", pid);
 
     if (access(mem_maps_path, F_OK) == -1 || access(mem_path, F_OK) == -1) {
         return false;
@@ -39,7 +39,7 @@ FILE* process::open_maps_fd(uint64_t pid) {
     }
 
     char mem_maps_path[64];
-    sprintf(mem_maps_path, "/proc/%lld/maps", pid);
+    sprintf(mem_maps_path, "/proc/%lu/maps", pid);
 
     FILE* maps_fd = fopen(mem_maps_path, "r");
     if (maps_fd == nullptr) {
@@ -55,7 +55,7 @@ FILE* process::open_mem_fd(uint64_t pid) {
     }
 
     char mem_path[64];
-    sprintf(mem_path, "/proc/%lld/mem", pid);
+    sprintf(mem_path, "/proc/%lu/mem", pid);
 
     FILE* mem_fd = fopen(mem_path, "rw");
     if (mem_fd == nullptr) {
@@ -72,7 +72,7 @@ proc_maps_info process::parse_proc_maps(FILE* maps_fd) {
     char line[line_max_size];
     while (fgets(line, line_max_size, maps_fd) != nullptr) {
         mem_range range;
-        sscanf(line, "%16llx-%16llx\n", &range.start, &range.end);
+        sscanf(line, "%16lx-%16lx\n", &range.start, &range.end);
         proc_maps_info.ranges.push_back(range);
     }
 

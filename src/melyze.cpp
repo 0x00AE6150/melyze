@@ -40,7 +40,7 @@ void print_value_address(const proc_maps_info& proc_map_info, FILE* mem_fd, int_
             continue;
         }
 
-        //printf("Scanning range 0x%llx - 0x%llx \n", ange.start, range.end);
+        //printf("Scanning range 0x%lx - 0x%lx \n", ange.start, range.end);
 
         fseeko(mem_fd, range.start, SEEK_SET);
         fread(buffer, sizeof(uint8_t), range_size, mem_fd);
@@ -48,7 +48,7 @@ void print_value_address(const proc_maps_info& proc_map_info, FILE* mem_fd, int_
         for (size_t byte_offset = 0; byte_offset + sizeof(int_type) <= range_size; ++byte_offset) {
             int_type* value_in_buffer = reinterpret_cast<int_type*>(buffer + byte_offset);
             if (*value_in_buffer == value || *value_in_buffer == little_endian_value) {
-                printf("0x%llx\n", range.start + byte_offset);
+                printf("0x%lx\n", range.start + byte_offset);
             }
         }
     }
@@ -86,7 +86,7 @@ void print_byte_array_value_address(const proc_maps_info& proc_map_info, FILE* m
         for (size_t byte_offset = 0; byte_offset + sizeof(uint8_t) <= range_size; ++byte_offset) {
             uint8_t* addr = buffer + byte_offset;
             if (memcmp(addr, array, size) == 0) {
-                printf("0x%llx\n", range.start + byte_offset);
+                printf("0x%lx\n", range.start + byte_offset);
             }
         }
     }
@@ -137,7 +137,10 @@ void seek_addr(uint64_t pid, const value& val, bool should_suspend) {
     FILE* mem_fd = process::open_mem_fd(pid);
 
     if (should_suspend) {
-        process::suspend(pid);
+        if (!process::suspend(pid)) {
+            printf("Failed to suspend process\n");
+            return;
+        }
     }
 
     switch (val.type) {
@@ -187,37 +190,40 @@ void seek_addr(uint64_t pid, const value& val, bool should_suspend) {
 void write_val_at_addr(uint64_t pid, const value& address, const value& val) {
     FILE* mem_fd = process::open_mem_fd(pid);
 
-    process::suspend(pid);
+    if (!process::suspend(pid)) {
+        printf("Failed to suspend process\n");
+        return;
+    }
 
     fseeko(mem_fd, address.data.uint64, SEEK_SET);
 
     switch (val.type) {
         case uint64:
-            fwrite(&val.data.uint64, 1, sizeof(uint64_t), mem_fd);
+            fwrite(&val.data.uint64, sizeof(uint8_t), sizeof(uint64_t), mem_fd);
             break;
         case int64:
-            fwrite(&val.data.int64, 1, sizeof(int64_t), mem_fd);
+            fwrite(&val.data.int64, sizeof(uint8_t), sizeof(int64_t), mem_fd);
             break;
         case uint32:
-            fwrite(&val.data.uint32, 1, sizeof(uint32_t), mem_fd);
+            fwrite(&val.data.uint32, sizeof(uint8_t), sizeof(uint32_t), mem_fd);
             break;
         case int32:
-            fwrite(&val.data.int32, 1, sizeof(int32_t), mem_fd);
+            fwrite(&val.data.int32, sizeof(uint8_t), sizeof(int32_t), mem_fd);
             break;
         case uint16:
-            fwrite(&val.data.uint16, 1, sizeof(uint16_t), mem_fd);
+            fwrite(&val.data.uint16, sizeof(uint8_t), sizeof(uint16_t), mem_fd);
             break;
         case int16:
-            fwrite(&val.data.int16, 1, sizeof(int16_t), mem_fd);
+            fwrite(&val.data.int16, sizeof(uint8_t), sizeof(int16_t), mem_fd);
             break;
         case uint8:
-            fwrite(&val.data.uint8, 1, sizeof(uint8_t), mem_fd);
+            fwrite(&val.data.uint8, sizeof(uint8_t), sizeof(uint8_t), mem_fd);
             break;
         case int8:
-            fwrite(&val.data.int8, 1, sizeof(int8_t), mem_fd);
+            fwrite(&val.data.int8, sizeof(uint8_t), sizeof(int8_t), mem_fd);
             break;
         case string:
-            fwrite(val.data.string->data(), 1, val.data.string->size(), mem_fd);
+            fwrite(val.data.string->data(), sizeof(uint8_t), val.data.string->size(), mem_fd);
             break;
         default:
             assert(false);
