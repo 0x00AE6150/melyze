@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <vector>
+#include <string>
 
 enum permissions {
     READ    = 1 << 0,
