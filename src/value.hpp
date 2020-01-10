@@ -3,22 +3,22 @@
 #include <cstdint>
 #include <string>
 
-typedef enum value_type {
-    unknown,
-    int8,
-    uint8,
-    int16,
-    uint16,
-    int32,
-    uint32,
-    int64,
-    uint64,
-    addr,
-    string,
-    path
-} value_type;
+enum class ValueType {
+    UNKNOWN,
+    INT8,
+    UINT8,
+    INT16,
+    UINT16,
+    INT32,
+    UINT32,
+    INT64,
+    UINT64,
+    ADDR,
+    STRING,
+    PATH
+};
 
-typedef union value_data {
+union ValueData {
     int8_t int8;
     uint8_t uint8;
     int16_t int16;
@@ -30,19 +30,19 @@ typedef union value_data {
     uint64_t addr;
     std::string* string;
     std::string* path;
-} value_data;
+};
 
-typedef struct value {
-    value_type type;
-    value_data data;
+struct Value {
+    ValueType type;
+    ValueData data;
 
-    ~value() {
-        if (type == value_type::string || type == value_type::path) {
+    ~Value() {
+        if (type == ValueType::STRING || type == ValueType::PATH) {
             delete data.string;
         }
     }
-} value;
+};
 
-value_type value_type_from_string(const std::string& type);
+ValueType value_type_from_string(const std::string& type);
 
-value value_from_string(value_type type, const std::string& valStr);
+Value value_from_string(ValueType type, const std::string& valStr);

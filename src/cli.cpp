@@ -20,42 +20,42 @@ void print_help() {
     // TODO
 }
 
-void set_cli_color(cli_color color) {
+void set_cli_color(CliColor color) {
     switch (color) {
-        case RED:
+        case CliColor::RED:
             printf("\033[0;31m");
             break;
-        case RED_BOLD:
+        case CliColor::RED_BOLD:
             printf("\033[1;31m");
             break;
-        case GREEN:
+        case CliColor::GREEN:
             printf("\033[0;32m");
             break;
-        case GREEN_BOLD:
+        case CliColor::GREEN_BOLD:
             printf("\033[1;32m");
             break;
-        case YELLOW:
+        case CliColor::YELLOW:
             printf("\033[0;33m");
             break;
-        case YELLOW_BOLD:
+        case CliColor::YELLOW_BOLD:
             printf("\033[1;33m");
             break;
-        case BLUE:
+        case CliColor::BLUE:
             printf("\033[0;34m");
             break;
-        case BLUE_BOLD:
+        case CliColor::BLUE_BOLD:
             printf("\033[1;34m");
             break;
-        case MAGENTA:
+        case CliColor::MAGENTA:
             printf("\033[0;35m");
             break;
-        case MAGENTA_BOLD:
+        case CliColor::MAGENTA_BOLD:
             printf("\033[1;35m");
             break;
-        case CYAN:
+        case CliColor::CYAN:
             printf("\033[0;36m");
             break;
-        case CYAN_BOLD:
+        case CliColor::CYAN_BOLD:
             printf("\033[1;36m");
             break;
         default:
@@ -64,28 +64,28 @@ void set_cli_color(cli_color color) {
     }
 }
 
-void execute_cmd(const command& cmd) {
+void execute_cmd(const Command& cmd) {
     try {
         switch (cmd.type) {
-            case PROCESSES:
+            case CommandType::PROCESSES:
                 list_processes();
                 break;
-            case ATTACH: {
+            case CommandType::ATTACH: {
                 uint64_t pid = cmd.operand_1.data.uint64;
                 if (process::check_process(pid)) {
                     s_pid = pid;
                 }
                 break;
-            } case DUMP_MEM:
+            } case CommandType::DUMP_MEM:
                 dump_proc_mem(s_pid);
                 break;
-            case SEEK_ADDR_OF:
+            case CommandType::SEEK_ADDR_OF:
                 seek_addr(s_pid, cmd.operand_1, true);
                 break;
-            case WRITE_AT_ADDR:
+            case CommandType::WRITE_AT_ADDR:
                 write_val_at_addr(s_pid, cmd.operand_1, cmd.operand_2);
                 break;
-            case DUMP_LIB_SYMS:
+            case CommandType::DUMP_LIB_SYMS:
 
                 break;
             default:
@@ -97,9 +97,9 @@ void execute_cmd(const command& cmd) {
 }
 
 bool melyze_cli_run() {
-    set_cli_color(CYAN_BOLD);
+    set_cli_color(CliColor::CYAN_BOLD);
     printf("(melyze) ");
-    set_cli_color(RESET);
+    set_cli_color(CliColor::RESET);
 
     char buffer[MAX_INPUT_SIZE];
     fgets(buffer, MAX_INPUT_SIZE, stdin);
@@ -116,8 +116,8 @@ bool melyze_cli_run() {
 
     strtok(buffer, "\n");
 
-    command cmd;
-    cmd.type = UNKNOWN;
+    Command cmd;
+    cmd.type = CommandType::UNKNOWN;
 
     const uint8_t allowed_word_count = 4;
     std::array<std::string, allowed_word_count> words;
@@ -146,15 +146,15 @@ bool melyze_cli_run() {
             return true;
         }
 
-        cmd.type = PROCESSES;
+        cmd.type = CommandType::PROCESSES;
     } else if (words[0] == "a") {
         if (word_count != 2) {
             printf("Incorrect command operands.\nUsage:\n\ta <pid>\n");
             return true;
         }
 
-        cmd.type = ATTACH;
-        cmd.operand_1 = value_from_string(uint64, words[1]);
+        cmd.type = CommandType::ATTACH;
+        cmd.operand_1 = value_from_string(ValueType::UINT64, words[1]);
     } else if (words[0] == "d") {
         if (word_count != 2) {
             printf("Incorrect command operands.\nUsage:\n\td <file-path>\n");
@@ -166,8 +166,8 @@ bool melyze_cli_run() {
             return true;
         }
 
-        cmd.type = DUMP_MEM;
-        cmd.operand_1 = value_from_string(path, words[1]);
+        cmd.type = CommandType::DUMP_MEM;
+        cmd.operand_1 = value_from_string(ValueType::PATH, words[1]);
         // TODO implement dump_mem
         printf("Unimplemented command\n");
     } else if (words[0] == "s") {
@@ -181,9 +181,9 @@ bool melyze_cli_run() {
             return true;
         }
 
-        cmd.type = SEEK_ADDR_OF;
+        cmd.type = CommandType::SEEK_ADDR_OF;
         cmd.operand_1 = value_from_string(value_type_from_string(words[1]), words[2]);
-        if (cmd.operand_1.type == unknown || cmd.operand_1.type == addr || cmd.operand_1.type == path) {
+        if (cmd.operand_1.type == ValueType::UNKNOWN || cmd.operand_1.type == ValueType::ADDR || cmd.operand_1.type == ValueType::PATH) {
             printf("Incorrect command operands.\nUnknown value type \"%s\"\n", words[1].c_str());
             printf("Possible options:\n"
                    "    i8\n"
@@ -209,15 +209,15 @@ bool melyze_cli_run() {
             return true;
         }
 
-        cmd.type = WRITE_AT_ADDR;
-        cmd.operand_1 = value_from_string(addr, words[1]);
+        cmd.type = CommandType::WRITE_AT_ADDR;
+        cmd.operand_1 = value_from_string(ValueType::ADDR, words[1]);
         if (cmd.operand_1.data.addr == 0) {
             printf("Incorrect command operands. Failed to parse %s address\n", words[1].c_str());
             return true;
         }
 
         cmd.operand_2 = value_from_string(value_type_from_string(words[2]), words[3]);
-        if (cmd.operand_2.type == unknown) {
+        if (cmd.operand_2.type == ValueType::UNKNOWN) {
             printf("Incorrect command operands.\nUnknown value type \"%s\"\n", words[1].c_str());
             printf("Possible options:\n"
                    "    i8\n"
@@ -243,8 +243,8 @@ bool melyze_cli_run() {
             return true;
         }
 
-        cmd.type = DUMP_LIB_SYMS;
-        cmd.operand_1 = value_from_string(string, words[1]);
+        cmd.type = CommandType::DUMP_LIB_SYMS;
+        cmd.operand_1 = value_from_string(ValueType::STRING, words[1]);
         if (cmd.operand_1.data.string->empty()) {
             printf("Incorrect command operands. Failed to parse library name %s\n", words[1].c_str());
             return true;

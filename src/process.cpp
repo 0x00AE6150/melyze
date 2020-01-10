@@ -64,13 +64,13 @@ FILE* process::open_mem_fd(uint64_t pid) {
     return mem_fd;
 }
 
-proc_maps_info process::parse_proc_maps(FILE* maps_fd) {
-    proc_maps_info proc_maps_info;
+ProcMapInfo process::parse_proc_maps(FILE* maps_fd) {
+    ProcMapInfo proc_maps_info;
 
     size_t line_max_size = 256;
     char line[line_max_size];
     while (fgets(line, line_max_size, maps_fd) != nullptr) {
-        mem_range range;
+        MemoryRange range;
         sscanf(line, "%16lx-%16lx\n", &range.start, &range.end);
         proc_maps_info.ranges.push_back(range);
     }
@@ -78,9 +78,9 @@ proc_maps_info process::parse_proc_maps(FILE* maps_fd) {
     return proc_maps_info;
 }
 
-proc_maps_info process::parse_proc_maps(uint64_t pid) {
+ProcMapInfo process::parse_proc_maps(uint64_t pid) {
     FILE* maps_fd = open_maps_fd(pid);
-    proc_maps_info info = parse_proc_maps(maps_fd);
+    ProcMapInfo info = parse_proc_maps(maps_fd);
     fclose(maps_fd);
     return info;
 }

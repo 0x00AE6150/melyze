@@ -14,13 +14,13 @@
 #include "utils.hpp"
 
 template <typename int_type>
-void print_value_address(const proc_maps_info& proc_map_info, FILE* mem_fd, int_type value) {
+void print_value_address(const ProcMapInfo& proc_map_info, FILE* mem_fd, int_type value) {
     static_assert(std::is_integral<int_type>::value, "Only integral types are allowed.");
 
     int_type little_endian_value = to_little_endian(value);
 
     size_t buffer_size = 0;
-    for (const mem_range& range : proc_map_info.ranges) {
+    for (const MemoryRange& range : proc_map_info.ranges) {
         size_t range_size = range.end - range.start;
 
         if (range_size <= 0) {
@@ -34,7 +34,7 @@ void print_value_address(const proc_maps_info& proc_map_info, FILE* mem_fd, int_
 
     uint8_t* buffer = (uint8_t*)malloc(buffer_size * sizeof(uint8_t));
 
-    for (const mem_range& range : proc_map_info.ranges) {
+    for (const MemoryRange& range : proc_map_info.ranges) {
         size_t range_size = range.end - range.start;
         if (range_size <= 0) {
             continue;
@@ -59,9 +59,9 @@ void print_value_address(const proc_maps_info& proc_map_info, FILE* mem_fd, int_
     free(buffer);
 }
 
-void print_byte_array_value_address(const proc_maps_info& proc_map_info, FILE* mem_fd, const uint8_t* array, size_t size) {
+void print_byte_array_value_address(const ProcMapInfo& proc_map_info, FILE* mem_fd, const uint8_t* array, size_t size) {
     size_t buffer_size = 0;
-    for (const mem_range& range : proc_map_info.ranges) {
+    for (const MemoryRange& range : proc_map_info.ranges) {
         size_t range_size = range.end - range.start;
 
         if (range_size <= 0) {
@@ -75,7 +75,7 @@ void print_byte_array_value_address(const proc_maps_info& proc_map_info, FILE* m
 
     uint8_t* buffer = (uint8_t*)malloc(buffer_size * sizeof(uint8_t));
 
-    for (const mem_range& range : proc_map_info.ranges) {
+    for (const MemoryRange& range : proc_map_info.ranges) {
         size_t range_size = range.end - range.start;
         if (range_size <= 0) {
             continue;
@@ -135,8 +135,8 @@ void dump_proc_mem(uint64_t pid) {
 
 }
 
-void seek_addr(uint64_t pid, const value& val, bool should_suspend) {
-    proc_maps_info proc_map_info = process::parse_proc_maps(pid);
+void seek_addr(uint64_t pid, const Value& val, bool should_suspend) {
+    ProcMapInfo proc_map_info = process::parse_proc_maps(pid);
     FILE* mem_fd = process::open_mem_fd(pid);
 
     if (!process::attach(pid, should_suspend)) {
@@ -145,31 +145,31 @@ void seek_addr(uint64_t pid, const value& val, bool should_suspend) {
     }
 
     switch (val.type) {
-        case uint64:
+        case ValueType::UINT64:
             print_value_address(proc_map_info, mem_fd, val.data.uint64);
             break;
-        case int64:
+        case ValueType::INT64:
             print_value_address(proc_map_info, mem_fd, val.data.int64);
             break;
-        case uint32:
+        case ValueType::UINT32:
             print_value_address(proc_map_info, mem_fd, val.data.uint32);
             break;
-        case int32:
+        case ValueType::INT32:
             print_value_address(proc_map_info, mem_fd, val.data.int32);
             break;
-        case uint16:
+        case ValueType::UINT16:
             print_value_address(proc_map_info, mem_fd, val.data.uint16);
             break;
-        case int16:
+        case ValueType::INT16:
             print_value_address(proc_map_info, mem_fd, val.data.int16);
             break;
-        case uint8:
+        case ValueType::UINT8:
             print_value_address(proc_map_info, mem_fd, val.data.uint8);
             break;
-        case int8:
+        case ValueType::INT8:
             print_value_address(proc_map_info, mem_fd, val.data.int8);
             break;
-        case string:
+        case ValueType::STRING:
             print_byte_array_value_address(
                     proc_map_info,
                     mem_fd,
@@ -188,7 +188,7 @@ void seek_addr(uint64_t pid, const value& val, bool should_suspend) {
     }
 }
 
-void write_val_at_addr(uint64_t pid, const value& address, const value& val) {
+void write_val_at_addr(uint64_t pid, const Value& address, const Value& val) {
     FILE* mem_fd = process::open_mem_fd(pid);
 
     if (!process::attach(pid)) {
@@ -202,31 +202,31 @@ void write_val_at_addr(uint64_t pid, const value& address, const value& val) {
     }
 
     switch (val.type) {
-        case uint64:
+        case ValueType::UINT64:
             fwrite(&val.data.uint64, sizeof(uint8_t), sizeof(uint64_t), mem_fd);
             break;
-        case int64:
+        case ValueType::INT64:
             fwrite(&val.data.int64, sizeof(uint8_t), sizeof(int64_t), mem_fd);
             break;
-        case uint32:
+        case ValueType::UINT32:
             fwrite(&val.data.uint32, sizeof(uint8_t), sizeof(uint32_t), mem_fd);
             break;
-        case int32:
+        case ValueType::INT32:
             fwrite(&val.data.int32, sizeof(uint8_t), sizeof(int32_t), mem_fd);
             break;
-        case uint16:
+        case ValueType::UINT16:
             fwrite(&val.data.uint16, sizeof(uint8_t), sizeof(uint16_t), mem_fd);
             break;
-        case int16:
+        case ValueType::INT16:
             fwrite(&val.data.int16, sizeof(uint8_t), sizeof(int16_t), mem_fd);
             break;
-        case uint8:
+        case ValueType::UINT8:
             fwrite(&val.data.uint8, sizeof(uint8_t), sizeof(uint8_t), mem_fd);
             break;
-        case int8:
+        case ValueType::INT8:
             fwrite(&val.data.int8, sizeof(uint8_t), sizeof(int8_t), mem_fd);
             break;
-        case string:
+        case ValueType::STRING:
             fwrite(val.data.string->data(), sizeof(uint8_t), val.data.string->size(), mem_fd);
             break;
         default:
@@ -238,8 +238,8 @@ void write_val_at_addr(uint64_t pid, const value& address, const value& val) {
     process::detach(pid);
 }
 
-void dump_library_symbols(uint64_t pid, const value& val) {
-    proc_maps_info proc_map_info = process::parse_proc_maps(pid);
+void dump_library_symbols(uint64_t pid, const Value& val) {
+    ProcMapInfo proc_map_info = process::parse_proc_maps(pid);
 
 
 

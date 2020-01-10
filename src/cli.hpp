@@ -4,7 +4,7 @@
 
 static uint64_t s_pid = 0;
 
-typedef enum command_type {
+enum class CommandType {
     UNKNOWN = 0,
     PROCESSES,      // (melyze) p
     ATTACH,         // (melyze) a <pid>
@@ -12,15 +12,15 @@ typedef enum command_type {
     SEEK_ADDR_OF,   // (melyze) s <value type> <val>
     WRITE_AT_ADDR,  // (melyze) w <addr> <value type> <val>
     DUMP_LIB_SYMS   // (melyze) l <library name>
-} command_type;
+};
 
-typedef struct command {
-    command_type type;
-    value operand_1;
-    value operand_2;
-} command;
+struct Command {
+    CommandType type;
+    Value operand_1;
+    Value operand_2;
+};
 
-typedef enum cli_color {
+enum class CliColor {
     RED,
     RED_BOLD,
     GREEN,
@@ -34,10 +34,10 @@ typedef enum cli_color {
     CYAN,
     CYAN_BOLD,
     RESET
-} cli_color;
+};
 
-void set_cli_color(cli_color color);
+void set_cli_color(CliColor color);
 
-void execute_cmd(const command& cmd);
+void execute_cmd(const Command& cmd);
 
 bool melyze_cli_run();

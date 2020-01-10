@@ -10,6 +10,6 @@ namespace process {
     FILE* open_maps_fd(uint64_t pid);
     FILE* open_mem_fd(uint64_t pid);
 
-    proc_maps_info parse_proc_maps(FILE* maps_fd);
-    proc_maps_info parse_proc_maps(uint64_t pid);
+    ProcMapInfo parse_proc_maps(FILE* maps_fd);
+    ProcMapInfo parse_proc_maps(uint64_t pid);
 }
