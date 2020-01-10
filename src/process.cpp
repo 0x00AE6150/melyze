@@ -20,12 +20,15 @@ bool process::check_process(uint64_t pid) {
     return true;
 }
 
-bool process::suspend(uint64_t pid) {
+bool process::attach(uint64_t pid, bool should_suspend) {
     if (ptrace(PTRACE_ATTACH, pid, 0, 0) == -1) {
         return false;
     }
 
-    waitpid(pid, nullptr, 0);
+    if (should_suspend) {
+        waitpid(pid, nullptr, 0);
+    }
+
     return true;
 }
 
@@ -38,10 +41,8 @@ FILE* process::open_maps_fd(uint64_t pid) {
         throw std::runtime_error("Process " + std::to_string(pid) + " doesn't exist\n");
     }
 
-    char mem_maps_path[64];
-    sprintf(mem_maps_path, "/proc/%lu/maps", pid);
-
-    FILE* maps_fd = fopen(mem_maps_path, "r");
+    std::string mem_maps_path = "/proc/" + std::to_string(pid) + "/maps";
+    FILE* maps_fd = fopen(mem_maps_path.c_str(), "r");
     if (maps_fd == nullptr) {
         throw std::runtime_error("Failed to read " + std::to_string(pid) + " process memory maps.\nTry running \"melyze\" with sudo\n");
     }
@@ -54,10 +55,8 @@ FILE* process::open_mem_fd(uint64_t pid) {
         throw std::runtime_error("Process " + std::to_string(pid) + " doesn't exist\n");
     }
 
-    char mem_path[64];
-    sprintf(mem_path, "/proc/%lu/mem", pid);
-
-    FILE* mem_fd = fopen(mem_path, "rw");
+    std::string mem_path = "/proc/" + std::to_string(pid) + "/mem";
+    FILE* mem_fd = fopen(mem_path.c_str(), "r+");
     if (mem_fd == nullptr) {
         throw std::runtime_error("Failed to read " + std::to_string(pid) + " process memory\nTry running \"melyze\" with sudo\n");
     }

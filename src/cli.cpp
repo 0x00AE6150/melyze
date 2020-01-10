@@ -183,7 +183,7 @@ bool melyze_cli_run() {
 
         cmd.type = SEEK_ADDR_OF;
         cmd.operand_1 = value_from_string(value_type_from_string(words[1]), words[2]);
-        if (cmd.operand_1.type == unknown) {
+        if (cmd.operand_1.type == unknown || cmd.operand_1.type == addr || cmd.operand_1.type == path) {
             printf("Incorrect command operands.\nUnknown value type \"%s\"\n", words[1].c_str());
             printf("Possible options:\n"
                    "    i8\n"
@@ -210,8 +210,8 @@ bool melyze_cli_run() {
         }
 
         cmd.type = WRITE_AT_ADDR;
-        cmd.operand_1 = value_from_string(uint64, words[1]);
-        if (cmd.operand_1.data.uint64 == 0) {
+        cmd.operand_1 = value_from_string(addr, words[1]);
+        if (cmd.operand_1.data.addr == 0) {
             printf("Incorrect command operands. Failed to parse %s address\n", words[1].c_str());
             return true;
         }

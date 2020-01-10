@@ -4,7 +4,7 @@
 
 namespace process {
     bool check_process(uint64_t pid);
-    bool suspend(uint64_t pid);
+    bool attach(uint64_t pid, bool should_suspend = true);
     void detach(uint64_t pid);
 
     FILE* open_maps_fd(uint64_t pid);

@@ -42,7 +42,10 @@ void print_value_address(const proc_maps_info& proc_map_info, FILE* mem_fd, int_
 
         //printf("Scanning range 0x%lx - 0x%lx \n", ange.start, range.end);
 
-        fseeko(mem_fd, range.start, SEEK_SET);
+        if (fseeko(mem_fd, range.start, SEEK_SET) != 0) {
+            continue;
+        }
+
         fread(buffer, sizeof(uint8_t), range_size, mem_fd);
 
         for (size_t byte_offset = 0; byte_offset + sizeof(int_type) <= range_size; ++byte_offset) {
@@ -136,11 +139,9 @@ void seek_addr(uint64_t pid, const value& val, bool should_suspend) {
     proc_maps_info proc_map_info = process::parse_proc_maps(pid);
     FILE* mem_fd = process::open_mem_fd(pid);
 
-    if (should_suspend) {
-        if (!process::suspend(pid)) {
-            printf("Failed to suspend process\n");
-            return;
-        }
+    if (!process::attach(pid, should_suspend)) {
+        printf("Failed to attach to the process\n");
+        return;
     }
 
     switch (val.type) {
@@ -190,12 +191,15 @@ void seek_addr(uint64_t pid, const value& val, bool should_suspend) {
 void write_val_at_addr(uint64_t pid, const value& address, const value& val) {
     FILE* mem_fd = process::open_mem_fd(pid);
 
-    if (!process::suspend(pid)) {
-        printf("Failed to suspend process\n");
+    if (!process::attach(pid)) {
+        printf("Failed to attach to the process\n");
         return;
     }
 
-    fseeko(mem_fd, address.data.uint64, SEEK_SET);
+    if (fseeko(mem_fd, address.data.addr, SEEK_SET) != 0) {
+        printf("Failed to seek to address %lx\n", address.data.addr);
+        return;
+    }
 
     switch (val.type) {
         case uint64:

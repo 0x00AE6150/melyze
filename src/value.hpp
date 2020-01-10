@@ -13,6 +13,7 @@ typedef enum value_type {
     uint32,
     int64,
     uint64,
+    addr,
     string,
     path
 } value_type;
@@ -26,6 +27,7 @@ typedef union value_data {
     uint32_t uint32;
     int64_t int64;
     uint64_t uint64;
+    uint64_t addr;
     std::string* string;
     std::string* path;
 } value_data;

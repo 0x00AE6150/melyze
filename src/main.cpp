@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc == 2) {
-        s_pid = (uint64_t)strtol(argv[1], nullptr, 0);
+        s_pid = (uint64_t)strtol(argv[1], nullptr, 10);
     }
 
     bool should_run = true;

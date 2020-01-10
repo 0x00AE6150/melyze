@@ -1,8 +1,6 @@
 #include "value.hpp"
 
-#include <stdlib.h>
-#include <zconf.h>
-#include <string.h>
+#include <cstdlib>
 
 value_type value_type_from_string(const std::string& type) {
     if (type == "i8") {
@@ -21,6 +19,8 @@ value_type value_type_from_string(const std::string& type) {
         return int64;
     } else if (type == "u64") {
         return uint64;
+    } else if (type == "addr") {
+        return addr;
     } else if (type == "str") {
         return string;
     }
@@ -40,14 +40,15 @@ value value_from_string(value_type type, const std::string& valStr) {
         case uint32:
         case int64:
         case uint64:
-            val.data.uint64 = strtol(valStr.c_str(), nullptr, 0);
+            val.data.uint64 = strtol(valStr.c_str(), nullptr, 10);
+            break;
+        case addr:
+            val.data.addr = strtol(valStr.c_str(), nullptr, 0);
             break;
         case string:
         case path:
             val.data.string = new std::string(valStr);
             val.data.string = new std::string(valStr);
-            break;
-        case unknown:
             break;
         default:
             break;
