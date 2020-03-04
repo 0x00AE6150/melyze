@@ -17,7 +17,21 @@ void empty_stdin() {
 }
 
 void print_help() {
-    // TODO
+    printf(R"(
+Options:
+
+    p                              list processes
+    a <pid>                        attach to process
+    d <file-path>                  dump memory into file
+    s <value-type> <val>           seek value address of certain type
+    w <addr> <value-type> <val>    write certain value at specified address
+
+Value types:
+
+    i8, u8, i16, u16, i32, u32, i64, u64, str
+
+)"
+    );
 }
 
 void set_cli_color(CliColor color) {
@@ -74,6 +88,8 @@ void execute_cmd(const Command& cmd) {
                 uint64_t pid = cmd.operand_1.data.uint64;
                 if (process::check_process(pid)) {
                     s_pid = pid;
+                } else {
+                    printf("Failed to attach to specified process. Either it doesn't exist or special process files are not accessible.\n");
                 }
                 break;
             } case CommandType::DUMP_MEM:

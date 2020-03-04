@@ -1,8 +1,12 @@
 #pragma once
 
+#include <vector>
 #include <string>
 
+#include "bitswap.hpp"
+
 std::string execute_process(const std::string& cmd);
+std::vector<std::string> split(const std::string& str, const std::string& delimiter);
 
 template <typename int_type>
 int_type to_little_endian(int_type value) {
@@ -18,3 +22,4 @@ int_type to_little_endian(int_type value) {
             return value;
     }
 }
+

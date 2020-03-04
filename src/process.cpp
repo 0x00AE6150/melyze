@@ -6,12 +6,13 @@
 #include <string>
 #include <stdexcept>
 
+
 bool process::check_process(uint64_t pid) {
     char mem_maps_path[64];
-    sprintf(mem_maps_path, "/proc/%lu/maps", pid);
+    sprintf(mem_maps_path, "/proc/%llu/maps", pid);
 
     char mem_path[64];
-    sprintf(mem_path, "/proc/%lu/mem", pid);
+    sprintf(mem_path, "/proc/%llu/mem", pid);
 
     if (access(mem_maps_path, F_OK) == -1 || access(mem_path, F_OK) == -1) {
         return false;
@@ -67,12 +68,10 @@ FILE* process::open_mem_fd(uint64_t pid) {
 ProcMapInfo process::parse_proc_maps(FILE* maps_fd) {
     ProcMapInfo proc_maps_info;
 
-    size_t line_max_size = 256;
+    constexpr const size_t line_max_size = 512;
     char line[line_max_size];
     while (fgets(line, line_max_size, maps_fd) != nullptr) {
-        MemoryRange range;
-        sscanf(line, "%16lx-%16lx\n", &range.start, &range.end);
-        proc_maps_info.ranges.push_back(range);
+        proc_maps_info.ranges.emplace_back(MemoryRange(line));
     }
 
     return proc_maps_info;

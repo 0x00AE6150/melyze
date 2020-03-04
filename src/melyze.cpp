@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <cassert>
 
-#include <sstream>
 #include <vector>
 #include <cstring>
 #include <iterator>
@@ -51,7 +50,7 @@ void print_value_address(const ProcMapInfo& proc_map_info, FILE* mem_fd, int_typ
         for (size_t byte_offset = 0; byte_offset + sizeof(int_type) <= range_size; ++byte_offset) {
             int_type* value_in_buffer = reinterpret_cast<int_type*>(buffer + byte_offset);
             if (*value_in_buffer == value || *value_in_buffer == little_endian_value) {
-                printf("0x%lx\n", range.start + byte_offset);
+                printf("0x%llx\n", range.start + byte_offset);
             }
         }
     }
@@ -89,7 +88,7 @@ void print_byte_array_value_address(const ProcMapInfo& proc_map_info, FILE* mem_
         for (size_t byte_offset = 0; byte_offset + sizeof(uint8_t) <= range_size; ++byte_offset) {
             uint8_t* addr = buffer + byte_offset;
             if (memcmp(addr, array, size) == 0) {
-                printf("0x%lx\n", range.start + byte_offset);
+                printf("0x%llx\n", range.start + byte_offset);
             }
         }
     }
@@ -197,7 +196,7 @@ void write_val_at_addr(uint64_t pid, const Value& address, const Value& val) {
     }
 
     if (fseeko(mem_fd, address.data.addr, SEEK_SET) != 0) {
-        printf("Failed to seek to address %lx\n", address.data.addr);
+        printf("Failed to seek to address %llx\n", address.data.addr);
         return;
     }
 
